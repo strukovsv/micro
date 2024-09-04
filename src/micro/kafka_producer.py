@@ -29,11 +29,13 @@ class KafkaProducer(AIOKafkaProducer):
         )
 
 
-async def send_event(event: str, message: dict):
+async def send_event(message: dict, event: str = None):
     global producer
     js = message.copy()
-    if js.get("event", None):
-        js["events"] = js.get("events", []) + js["event"]
-    js["event"] = event
-    logger.info(f'send message "{js}" to "{event}"')
-    await producer.send_kafka(id=0, data=js)
+    _event = event if event else js.get("answer", None)
+    if _event:
+        if js.get("event", None):
+            js["events"] = js.get("events", []) + [js["event"]]
+        js["event"] = _event
+        logger.info(f'send message "{js}" to "{_event}"')
+        await producer.send_kafka(id=0, data=js)
