@@ -1,5 +1,6 @@
 import logging
 import json
+import datetime
 
 from aiokafka import AIOKafkaProducer
 
@@ -24,7 +25,7 @@ class KafkaProducer(AIOKafkaProducer):
         """Отправить сообщение в kafka"""
         await self.send_and_wait(
             topic=config.DST_TOPIC,
-            key=id.to_bytes(8, "big"),
+            key=id.to_bytes(8, "big") if isinstance(id, int) else id.encode(),
             value=json.dumps(data, ensure_ascii=False).encode(),
         )
 
@@ -32,10 +33,14 @@ class KafkaProducer(AIOKafkaProducer):
 async def send_event(message: dict, event: str = None):
     global producer
     js = message.copy()
+    if "id" not in js:
+        js["id"] = (
+            config.PRODUCER_ID + "-" + datetime.datetime.now().isoformat()
+        )
     _event = event if event else js.get("answer", None)
     if _event:
         if js.get("event", None):
             js["events"] = js.get("events", []) + [js["event"]]
         js["event"] = _event
         logger.info(f'send message "{js}" to "{_event}"')
-        await producer.send_kafka(id=0, data=js)
+        await producer.send_kafka(id=js["id"], data=js)
