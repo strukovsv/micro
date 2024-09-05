@@ -7,6 +7,8 @@ import config
 
 logger = logging.getLogger(__name__)
 
+_yclients = None
+
 
 class MetaSingleton(type):
     _instances = {}
@@ -361,3 +363,13 @@ class Yclients(metaclass=MetaSingleton):
 
     async def close(self):
         pass
+
+
+async def yclients():
+    global _yclients
+    if _yclients is None:
+        # Создать объект
+        _yclients = Yclients()
+        # Произвести авторизацию
+        await _yclients.auth()
+    return _yclients
