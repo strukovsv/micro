@@ -90,6 +90,7 @@ class Yclients(metaclass=MetaSingleton):
         params: dict,
         headers: str = None,
         method: str = "get",
+        pagination: bool = True,
     ) -> list:
         """Запросить объект из api
 
@@ -125,6 +126,7 @@ class Yclients(metaclass=MetaSingleton):
                                 params=params,
                                 timeout=10.0,
                             )
+                            logger.info(f'{r.url}')
                         else:
                             r = await client.post(
                                 self.url(url),
@@ -141,7 +143,7 @@ class Yclients(metaclass=MetaSingleton):
                         try:
                             logger.error(r.text)
                         except Exception as xe:
-                            None
+                            logger.error(xe)
                         logger.error(e)
                         raise
                 # Поспать немного.
@@ -166,6 +168,8 @@ class Yclients(metaclass=MetaSingleton):
                     records.extend(rows)
                     # Если строк вернули, меньше чем запросили,
                     # то завершить чтение
+                    if not pagination:
+                        break
                     if len(rows) < page_count:
                         break
                 else:
@@ -200,7 +204,7 @@ class Yclients(metaclass=MetaSingleton):
                 "with_deleted": 1,
             },
         )
-        logger.debug(f"get_records_after {changed_after}, rows: {len(rows)}")
+        logger.info(f"get_records_after {changed_after}, rows: {len(rows)}")
         return rows
 
     async def get_cards(self, start_date, end_date, ids=None):
@@ -212,7 +216,7 @@ class Yclients(metaclass=MetaSingleton):
                 "created_before": end_date,
             },
         )
-        logger.debug(f"get_cards {start_date}-{end_date}, rows: {len(rows)}")
+        logger.info(f"get_cards {start_date}-{end_date}, rows: {len(rows)}")
         return rows
 
     async def get_staff(self, start_date, end_date, ids=None):
@@ -220,8 +224,9 @@ class Yclients(metaclass=MetaSingleton):
             obj_name="staff",
             url=f"company/{self.company_id}/staff",
             params={},
+            pagination=False,
         )
-        logger.debug(f"get_staff, rows: {len(rows)}")
+        logger.info(f"get_staff, rows: {len(rows)}")
         return rows
 
     async def get_storage_transactions(self, start_date, end_date, ids=None):
@@ -270,7 +275,7 @@ class Yclients(metaclass=MetaSingleton):
             url=f"visit/details/{self.company_id}/{record_id}/{visit_id}",
             params={},
         )
-        logger.debug(f"get_visit: {visit_id}")
+        logger.info(f"get_visit: {visit_id}")
         return rows
 
     async def get_clients(self, start_date, end_date, ids=None):
@@ -294,17 +299,17 @@ class Yclients(metaclass=MetaSingleton):
                 ]
             },
         )
-        logger.debug(f"get_clients, rows: {len(rows)}")
+        logger.info(f"get_clients, rows: {len(rows)}")
         return rows
 
     async def get_clients2(self, start_date, end_date, ids=None):
         rows = await self.load_object(
-            obj_name="all_clients1",
+            obj_name="all_clients2",
             url=f"clients/{self.company_id}",
             method="get",
             params={},
         )
-        logger.debug(f"get_clients2, rows: {len(rows)}")
+        logger.info(f"get_clients2, rows: {len(rows)}")
         return rows
 
     async def get_client(self, client_id):
@@ -338,6 +343,7 @@ class Yclients(metaclass=MetaSingleton):
                 "staff_ids": ids,
                 "include": "busy_intervals",
             },
+            pagination=False,
         )
         logger.debug(
             f"get_schedule {start_date}-{end_date}, rows: {len(rows)}"
