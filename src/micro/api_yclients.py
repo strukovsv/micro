@@ -126,7 +126,7 @@ class Yclients(metaclass=MetaSingleton):
                                 params=params,
                                 timeout=10.0,
                             )
-                            logger.info(f'{r.url}')
+                            logger.info(f"{r.url}")
                         else:
                             r = await client.post(
                                 self.url(url),
@@ -229,6 +229,16 @@ class Yclients(metaclass=MetaSingleton):
         logger.info(f"get_staff, rows: {len(rows)}")
         return rows
 
+    async def get_services(self, start_date, end_date, ids=None):
+        rows = await self.load_object(
+            obj_name="services",
+            url=f"company/{self.company_id}/services",
+            params={},
+            pagination=False,
+        )
+        logger.info(f"get_services, rows: {len(rows)}")
+        return rows
+
     async def get_storage_transactions(self, start_date, end_date, ids=None):
         """Товарные транзакции
 
@@ -312,10 +322,10 @@ class Yclients(metaclass=MetaSingleton):
         logger.info(f"get_clients2, rows: {len(rows)}")
         return rows
 
-    async def get_client(self, client_id):
+    async def get_detail_clients(self, start_date, end_date, ids=None):
         return await self.load_object(
             obj_name=None,
-            url=f"client/{self.company_id}/{client_id}",
+            url=f"client/{self.company_id}/{ids}",
             params={},
         )
 
