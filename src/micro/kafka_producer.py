@@ -33,8 +33,8 @@ class KafkaProducer(AIOKafkaProducer):
 async def send_event(message: dict, event: str = None):
     global producer
     js = message.copy()
-    if "id" not in js:
-        js["id"] = (
+    if "message_id" not in js:
+        js["message_id"] = (
             config.PRODUCER_ID + "-" + datetime.datetime.now().isoformat()
         )
     _event = event if event else js.get("answer", None)
@@ -43,4 +43,4 @@ async def send_event(message: dict, event: str = None):
             js["events"] = js.get("events", []) + [js["event"]]
         js["event"] = _event
         logger.info(f'send message "{js}" to "{_event}"')
-        await producer.send_kafka(id=js["id"], data=js)
+        await producer.send_kafka(id=js["message_id"], data=js)
