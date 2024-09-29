@@ -329,6 +329,13 @@ class Yclients(metaclass=MetaSingleton):
             params={},
         )
 
+    async def get_detail_activity(self, start_date, end_date, ids=None):
+        return await self.load_object(
+            obj_name=None,
+            url=f"activity/{self.company_id}/{ids}",
+            params={},
+        )
+
     async def get_activity(self, start_date, end_date, ids=None):
         rows = await self.load_object(
             obj_name="activity",
