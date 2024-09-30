@@ -193,6 +193,17 @@ class Yclients(metaclass=MetaSingleton):
             },
         )
 
+    async def write_transaction(self, params: dict):
+        _headers = await self.auth()
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                self.url(f"finance_transactions/{self.company_id}"),
+                headers=_headers,
+                json=params,
+                timeout=10.0,
+            )
+        return r.json()
+
     async def get_records_after(self, changed_after):
         rows = await self.load_object(
             obj_name="records",
