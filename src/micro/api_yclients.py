@@ -4,6 +4,7 @@ import asyncio
 import datetime
 
 import config
+import micro.utils
 
 logger = logging.getLogger(__name__)
 
@@ -379,21 +380,33 @@ class Yclients(metaclass=MetaSingleton):
         return rows
 
     async def send_message(self, message, client_ids: list):
-        """Струков client_ids = [222715438]"""
+        """Отправить сообщение средствами yclients"""
+        # Установлена переменная тестовой отправки только этому клиенту
+        test_client_id = int(micro.utils.getenv("MESSAGE_CLIENT_ID", "0"))
         async with httpx.AsyncClient() as client:
             try:
                 r = await client.post(
                     self.url(f"sms/clients/by_id/{self.company_id}"),
                     headers=await self.auth(),
                     json={
-                        "client_ids": [client_ids],
-                        "text": message,
+                        "client_ids": (
+                            [test_client_id] if test_client_id else client_ids
+                        ),
+                        "text": (
+                            f"""test for client: {client_ids}
+-----------------------
+{message}"""
+                            if test_client_id
+                            else message
+                        ),
                     },
                     timeout=10.0,
                 )
-                logger.info(r.text)
+                # {"success": true or false, "meta": {"message": "текст ошибки"}}
+                return r.json()
             except Exception as e:
                 logger.error(e)
+                return {"success": False, "meta": {"message": e}}
 
     async def close(self):
         pass
