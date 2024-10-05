@@ -139,7 +139,7 @@ class Yclients(metaclass=MetaSingleton):
                     except Exception as e:
                         # Получить user token
                         if i < 3:
-                            logger.error(f"attempt: {i}")
+                            logger.error(f"attempt: {i}, error: {e}")
                             continue
                         try:
                             logger.error(r.text)
@@ -199,6 +199,17 @@ class Yclients(metaclass=MetaSingleton):
         async with httpx.AsyncClient() as client:
             r = await client.post(
                 self.url(f"finance_transactions/{self.company_id}"),
+                headers=_headers,
+                json=params,
+                timeout=10.0,
+            )
+        return r.json()
+
+    async def write_activity(self, params: dict):
+        _headers = await self.auth()
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                self.url(f"activity/{self.company_id}"),
                 headers=_headers,
                 json=params,
                 timeout=10.0,
