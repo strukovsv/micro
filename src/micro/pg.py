@@ -3,11 +3,17 @@ import json
 import hashlib
 import psycopg_pool
 from psycopg.rows import dict_row
+import jinja2
+
+from .utils import get_classic_rows
 
 import config
 import metrics
 
 logger = logging.getLogger(__name__)
+
+
+sql = jinja2.Environment(loader=jinja2.FileSystemLoader("sql/"))
 
 
 class DB:
@@ -174,3 +180,13 @@ async def update(table_name: str, id: int, js: dict, func=None) -> str:
     result = await (await get_db()).update(table_name, id, js, func)
     logger.info(f"update {table_name}[{id}]: {result}")
     return result
+
+
+async def select(template: str, **kwarg):
+    sql_text = sql.get_template(template).render(**kwarg)
+    data = await fetchall(sql_text)
+    # logger.info(f'{template=} {data=} {sql_text=}')
+    if kwarg.get("as_classic_rows", None):
+        return get_classic_rows(data)
+    else:
+        return data

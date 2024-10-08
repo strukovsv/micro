@@ -76,3 +76,21 @@ def get_period(type_period: str, sformat: str = "%d.%m.%Y", current_date=None):
         return (date1.strftime(sformat), date2.strftime(sformat))
     else:
         return (date1, date2)
+
+
+def get_classic_rows(rows: list) -> list:
+    result = []
+    if rows is not None and len(rows) > 0:
+        # Добавить колонки
+        row_cnt = 0
+        for row in rows:
+            row_cnt += 1
+            if row_cnt == 1:
+                result.append([field_name for field_name in row])
+            result.append(
+                [
+                    field_values if field_values is not None else ""
+                    for field_values in row.values()
+                ]
+            )
+    return result
