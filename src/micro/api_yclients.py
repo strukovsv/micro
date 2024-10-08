@@ -4,6 +4,7 @@ import asyncio
 import datetime
 
 import config
+import micro.utils
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +139,7 @@ class Yclients(metaclass=MetaSingleton):
                     except Exception as e:
                         # Получить user token
                         if i < 3:
-                            logger.error(f"attempt: {i}")
+                            logger.error(f"attempt: {i}, error: {e}")
                             continue
                         try:
                             logger.error(r.text)
@@ -192,6 +193,28 @@ class Yclients(metaclass=MetaSingleton):
                 "end_date": end_date,
             },
         )
+
+    async def write_transaction(self, params: dict):
+        _headers = await self.auth()
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                self.url(f"finance_transactions/{self.company_id}"),
+                headers=_headers,
+                json=params,
+                timeout=10.0,
+            )
+        return r.json()
+
+    async def write_activity(self, params: dict):
+        _headers = await self.auth()
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                self.url(f"activity/{self.company_id}"),
+                headers=_headers,
+                json=params,
+                timeout=10.0,
+            )
+        return r.json()
 
     async def get_records_after(self, changed_after):
         rows = await self.load_object(
@@ -329,6 +352,13 @@ class Yclients(metaclass=MetaSingleton):
             params={},
         )
 
+    async def get_detail_activity(self, start_date, end_date, ids=None):
+        return await self.load_object(
+            obj_name=None,
+            url=f"activity/{self.company_id}/{ids}",
+            params={},
+        )
+
     async def get_activity(self, start_date, end_date, ids=None):
         rows = await self.load_object(
             obj_name="activity",
@@ -361,21 +391,33 @@ class Yclients(metaclass=MetaSingleton):
         return rows
 
     async def send_message(self, message, client_ids: list):
-        """Струков client_ids = [222715438]"""
+        """Отправить сообщение средствами yclients"""
+        # Установлена переменная тестовой отправки только этому клиенту
+        test_client_id = int(micro.utils.getenv("MESSAGE_CLIENT_ID", "0"))
         async with httpx.AsyncClient() as client:
             try:
                 r = await client.post(
                     self.url(f"sms/clients/by_id/{self.company_id}"),
                     headers=await self.auth(),
                     json={
-                        "client_ids": [client_ids],
-                        "text": message,
+                        "client_ids": (
+                            [test_client_id] if test_client_id else client_ids
+                        ),
+                        "text": (
+                            f"""test for client: {client_ids}
+-----------------------
+{message}"""
+                            if test_client_id
+                            else message
+                        ),
                     },
                     timeout=10.0,
                 )
-                logger.info(r.text)
+                # {"success": true or false, "meta": {"message": "текст ошибки"}}
+                return r.json()
             except Exception as e:
                 logger.error(e)
+                return {"success": False, "meta": {"message": e}}
 
     async def close(self):
         pass
