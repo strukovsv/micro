@@ -127,7 +127,7 @@ class Yclients(metaclass=MetaSingleton):
                                 params=params,
                                 timeout=10.0,
                             )
-                            logger.info(f"{r.url}")
+                            logger.debug(f"{r.url}")
                         else:
                             r = await client.post(
                                 self.url(url),
@@ -140,6 +140,7 @@ class Yclients(metaclass=MetaSingleton):
                         # Получить user token
                         if i < 3:
                             logger.error(f"attempt: {i}, error: {e}")
+                            asyncio.sleep(10)
                             continue
                         try:
                             logger.error(r.text)
@@ -227,7 +228,7 @@ class Yclients(metaclass=MetaSingleton):
                 "with_deleted": 1,
             },
         )
-        logger.info(f"get_records_after {changed_after}, rows: {len(rows)}")
+        logger.debug(f"get_records_after {changed_after}, rows: {len(rows)}")
         return rows
 
     async def get_cards(self, start_date, end_date, ids=None):
@@ -239,7 +240,7 @@ class Yclients(metaclass=MetaSingleton):
                 "created_before": end_date,
             },
         )
-        logger.info(f"get_cards {start_date}-{end_date}, rows: {len(rows)}")
+        logger.debug(f"get_cards {start_date}-{end_date}, rows: {len(rows)}")
         return rows
 
     async def get_staff(self, start_date, end_date, ids=None):
@@ -249,7 +250,7 @@ class Yclients(metaclass=MetaSingleton):
             params={},
             pagination=False,
         )
-        logger.info(f"get_staff, rows: {len(rows)}")
+        logger.debug(f"get_staff, rows: {len(rows)}")
         return rows
 
     async def get_services(self, start_date, end_date, ids=None):
@@ -259,7 +260,7 @@ class Yclients(metaclass=MetaSingleton):
             params={},
             pagination=False,
         )
-        logger.info(f"get_services, rows: {len(rows)}")
+        logger.debug(f"get_services, rows: {len(rows)}")
         return rows
 
     async def get_storage_transactions(self, start_date, end_date, ids=None):
@@ -308,7 +309,7 @@ class Yclients(metaclass=MetaSingleton):
             url=f"visit/details/{self.company_id}/{record_id}/{visit_id}",
             params={},
         )
-        logger.info(f"get_visit: {visit_id}")
+        logger.debug(f"get_visit: {visit_id}")
         return rows
 
     async def get_clients(self, start_date, end_date, ids=None):
@@ -332,7 +333,7 @@ class Yclients(metaclass=MetaSingleton):
                 ]
             },
         )
-        logger.info(f"get_clients, rows: {len(rows)}")
+        logger.debug(f"get_clients, rows: {len(rows)}")
         return rows
 
     async def get_clients2(self, start_date, end_date, ids=None):
@@ -342,7 +343,7 @@ class Yclients(metaclass=MetaSingleton):
             method="get",
             params={},
         )
-        logger.info(f"get_clients2, rows: {len(rows)}")
+        logger.debug(f"get_clients2, rows: {len(rows)}")
         return rows
 
     async def get_detail_clients(self, start_date, end_date, ids=None):
