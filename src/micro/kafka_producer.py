@@ -37,10 +37,11 @@ async def send_event(message: dict, event: str = None):
         js["message_id"] = (
             config.PRODUCER_ID + "-" + datetime.datetime.now().isoformat()
         )
-    _event = event if event else js.get("answer", None)
-    if _event:
+    event = event if event else js.get("answer", None)
+    if event:
         if js.get("event", None):
             js["events"] = js.get("events", []) + [js["event"]]
-        js["event"] = _event
-        logger.info(f'send message "{js}" to "{_event}"')
+        js["event"] = event
+        message_id = js["message_id"]
+        logger.info(f'send message "{message_id}" to "{event}"')
         await producer.send_kafka(id=js["message_id"], data=js)
