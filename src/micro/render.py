@@ -2,7 +2,6 @@ import logging
 
 from .restdb import get_data
 from .utils import get_period
-import .pg as db
 
 import jinja2
 import prettytable as pt
