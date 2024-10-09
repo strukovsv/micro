@@ -37,7 +37,7 @@ def getenv(name: str, default: str = None):
         return None
 
 
-def get_period(type_period: str, sformat: str = "%d.%m.%Y", current_date=None):
+def get_period(type_period: str, sformat: str = None, current_date=None):
     # now = datetime.now() + timedelta(hours=7)
     now = current_date if current_date else datetime.now()
     if type_period.lower() == "yesterday":
