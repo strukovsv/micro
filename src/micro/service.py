@@ -14,6 +14,8 @@ import logging
 
 from .utils import hide_passwords
 
+import config
+
 log = logging.getLogger()
 
 app = None
@@ -44,7 +46,11 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="fastapi", lifespan=lifespan)
+app = FastAPI(
+    title="fastapi",
+    lifespan=lifespan,
+    openapi_url="/openapi.json" if config.OPENAPI else "",
+)
 
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics", handle_metrics)

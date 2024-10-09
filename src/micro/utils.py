@@ -40,12 +40,23 @@ def getenv(name: str, default: str = None):
 def get_period(type_period: str, sformat: str = None, current_date=None):
     # now = datetime.now() + timedelta(hours=7)
     now = current_date if current_date else datetime.now()
+    arr = type_period.split("-")
+    if len(arr) == 2 and arr[0].isdigit():
+        num = int(arr[0])
+        name = arr[1]
+    else:
+        num = None
     if type_period.lower() == "yesterday":
         date1 = now - timedelta(days=1)
         date2 = date1
     elif type_period.lower() == "week":
         date1 = now - timedelta(days=7)
         date2 = now
+    elif num is not None and name == "week":
+        # День на следующей недели
+        dt = now + timedelta(days=(7 * num))
+        date1 = dt - timedelta(days=dt.weekday())
+        date2 = date1 + timedelta(days=6)
     elif type_period.lower() == "current-week":
         date1 = now - timedelta(days=now.weekday())
         date2 = date1 + timedelta(days=6)
