@@ -206,6 +206,17 @@ class Yclients(metaclass=MetaSingleton):
             )
         return r.json()
 
+    async def delete_activity(self, params: dict):
+        _headers = await self.auth()
+        activity_id = params["activity_id"]
+        async with httpx.AsyncClient() as client:
+            r = await client.delete(
+                self.url(f"activity/{self.company_id}/{activity_id}"),
+                headers=_headers,
+                timeout=10.0,
+            )
+        return r.json()
+
     async def write_activity(self, params: dict):
         _headers = await self.auth()
         async with httpx.AsyncClient() as client:
