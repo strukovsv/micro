@@ -4,6 +4,7 @@ import asyncio
 import datetime
 
 import config
+import metrics
 import micro.utils
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class Yclients(metaclass=MetaSingleton):
                 logger.debug(f"{self.headers_partner=}")
                 # Авторизоваться в системе
                 try:
+                    metrics.POST_REQUEST_CNT.inc()
                     r = await client.post(
                         self.url("auth"),
                         headers=self.headers_partner,
@@ -61,6 +63,7 @@ class Yclients(metaclass=MetaSingleton):
                         timeout=10.0,
                     )
                 except Exception as e:
+                    metrics.REQUEST_ERROR_CNT.inc()
                     # Получить user token
                     logger.error(f"{e=}")
                     logger.error(f'{self.url("auth")=}')
@@ -70,6 +73,7 @@ class Yclients(metaclass=MetaSingleton):
                 try:
                     auth = r.json()
                 except Exception as e:
+                    metrics.REQUEST_ERROR_CNT.inc()
                     # Получить user token
                     logger.error(r.text)
                     logger.error(e)
@@ -121,6 +125,7 @@ class Yclients(metaclass=MetaSingleton):
                 for i in range(0, 3):
                     try:
                         if method == "get":
+                            metrics.GET_REQUEST_CNT.inc()
                             r = await client.get(
                                 self.url(url),
                                 headers=_headers,
@@ -129,6 +134,7 @@ class Yclients(metaclass=MetaSingleton):
                             )
                             logger.debug(f"{r.url}")
                         else:
+                            metrics.POST_REQUEST_CNT.inc()
                             r = await client.post(
                                 self.url(url),
                                 headers=_headers,
@@ -143,6 +149,7 @@ class Yclients(metaclass=MetaSingleton):
                             asyncio.sleep(10)
                             continue
                         try:
+                            metrics.REQUEST_ERROR_CNT.inc()
                             logger.error(f'httpx: "{r.url=}"')
                             logger.error(f'httpx: "{r.text=}"')
                         except Exception as xe:
@@ -162,6 +169,7 @@ class Yclients(metaclass=MetaSingleton):
                 try:
                     js = r.json()
                 except Exception as e:
+                    metrics.REQUEST_ERROR_CNT.inc()
                     # Получить user token
                     logger.error(f'to_json: "{r.url=}"')
                     logger.error(f'to_json: "{r.text=}"')
@@ -200,6 +208,7 @@ class Yclients(metaclass=MetaSingleton):
     async def write_transaction(self, params: dict):
         _headers = await self.auth()
         async with httpx.AsyncClient() as client:
+            metrics.POST_REQUEST_CNT.inc()
             r = await client.post(
                 self.url(f"finance_transactions/{self.company_id}"),
                 headers=_headers,
@@ -212,6 +221,7 @@ class Yclients(metaclass=MetaSingleton):
         _headers = await self.auth()
         activity_id = params["activity_id"]
         async with httpx.AsyncClient() as client:
+            metrics.DELETE_REQUEST_CNT.inc()
             r = await client.delete(
                 self.url(f"activity/{self.company_id}/{activity_id}"),
                 headers=_headers,
@@ -222,6 +232,7 @@ class Yclients(metaclass=MetaSingleton):
     async def write_activity(self, params: dict):
         _headers = await self.auth()
         async with httpx.AsyncClient() as client:
+            metrics.POST_REQUEST_CNT.inc()
             r = await client.post(
                 self.url(f"activity/{self.company_id}"),
                 headers=_headers,
