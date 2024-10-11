@@ -132,7 +132,6 @@ class Yclients(metaclass=MetaSingleton):
                                 params=params,
                                 timeout=10.0,
                             )
-                            logger.debug(f"{r.url}")
                         else:
                             metrics.POST_REQUEST_CNT.inc()
                             r = await client.post(
@@ -141,6 +140,7 @@ class Yclients(metaclass=MetaSingleton):
                                 json=params,
                                 timeout=10.0,
                             )
+                        js = r.json()
                         break
                     except Exception as e:
                         # Получить user token
@@ -163,18 +163,19 @@ class Yclients(metaclass=MetaSingleton):
                 duration = (datetime.datetime.now() - start).total_seconds()
                 remain = 2.0 - duration
                 if remain > 0:
+                    # logger.info(f"sleep: {duration=}, {remain=}")
                     logger.debug(f"sleep remain: {remain}")
                     await asyncio.sleep(remain)
-                # Получить строки данных
-                try:
-                    js = r.json()
-                except Exception as e:
-                    metrics.REQUEST_ERROR_CNT.inc()
-                    # Получить user token
-                    logger.error(f'to_json: "{r.url=}"')
-                    logger.error(f'to_json: "{r.text=}"')
-                    logger.error(f'to_json: "{e=}"')
-                    raise
+                # # Получить строки данных
+                # try:
+                #     js = r.json()
+                # except Exception as e:
+                #     metrics.REQUEST_ERROR_CNT.inc()
+                #     # Получить user token
+                #     logger.error(f'to_json: "{r.url=}"')
+                #     logger.error(f'to_json: "{r.text=}"')
+                #     logger.error(f'to_json: "{e=}"')
+                #     raise
                 rows = js["data"]
                 if isinstance(rows, list):
                     records.extend(rows)
