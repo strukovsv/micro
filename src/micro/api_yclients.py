@@ -139,11 +139,12 @@ class Yclients(metaclass=MetaSingleton):
                     except Exception as e:
                         # Получить user token
                         if i < 3:
-                            logger.error(f"attempt: {i}, error: {e}")
+                            logger.error(f'attempt: "{i}", error: "{e}", url: "{r.url}"')
                             asyncio.sleep(10)
                             continue
                         try:
-                            logger.error(r.text)
+                            logger.error(f'httpx: "{r.url=}"')
+                            logger.error(f'httpx: "{r.text=}"')
                         except Exception as xe:
                             logger.error(xe)
                         logger.error(e)
@@ -162,8 +163,9 @@ class Yclients(metaclass=MetaSingleton):
                     js = r.json()
                 except Exception as e:
                     # Получить user token
-                    logger.error(r.text)
-                    logger.error(e)
+                    logger.error(f'to_json: "{r.url=}"')
+                    logger.error(f'to_json: "{r.text=}"')
+                    logger.error(f'to_json: "{e=}"')
                     raise
                 rows = js["data"]
                 if isinstance(rows, list):
