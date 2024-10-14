@@ -4,7 +4,14 @@ import asyncio
 import datetime
 
 import config
-import metrics
+
+from .metrics import (
+    API_YCLIENTS_POST_REQUEST_CNT,
+    API_YCLIENTS_GET_REQUEST_CNT,
+    API_YCLIENTS_DELETE_REQUEST_CNT,
+    API_YCLIENTS_REQUEST_ERROR_CNT,
+)
+
 import micro.utils
 
 logger = logging.getLogger(__name__)
@@ -52,7 +59,7 @@ class Yclients(metaclass=MetaSingleton):
                 logger.debug(f"{self.headers_partner=}")
                 # Авторизоваться в системе
                 try:
-                    metrics.POST_REQUEST_CNT.inc()
+                    API_YCLIENTS_POST_REQUEST_CNT.inc()
                     r = await client.post(
                         self.url("auth"),
                         headers=self.headers_partner,
@@ -63,7 +70,7 @@ class Yclients(metaclass=MetaSingleton):
                         timeout=10.0,
                     )
                 except Exception as e:
-                    metrics.REQUEST_ERROR_CNT.inc()
+                    API_YCLIENTS_REQUEST_ERROR_CNT.inc()
                     # Получить user token
                     logger.error(f"{e=}")
                     logger.error(f'{self.url("auth")=}')
@@ -73,7 +80,7 @@ class Yclients(metaclass=MetaSingleton):
                 try:
                     auth = r.json()
                 except Exception as e:
-                    metrics.REQUEST_ERROR_CNT.inc()
+                    API_YCLIENTS_REQUEST_ERROR_CNT.inc()
                     # Получить user token
                     logger.error(r.text)
                     logger.error(e)
@@ -82,7 +89,7 @@ class Yclients(metaclass=MetaSingleton):
                 logger.debug(f"{self.user_token=}")
                 # Сформировать заголовок для авторизации по пользователю
                 self.headers_user = {
-                    "Authorization": f"Bearer {self.partner_token}, User {self.user_token}",
+                    "Authorization": f"Bearer {self.partner_token}, User {self.user_token}",  # noqa
                     "Content-Type": "application/json",
                     "Accept": "application/vnd.yclients.v2+json",
                 }
@@ -125,7 +132,7 @@ class Yclients(metaclass=MetaSingleton):
                 for i in range(0, 3):
                     try:
                         if method == "get":
-                            metrics.GET_REQUEST_CNT.inc()
+                            API_YCLIENTS_GET_REQUEST_CNT.inc()
                             r = await client.get(
                                 self.url(url),
                                 headers=_headers,
@@ -133,7 +140,7 @@ class Yclients(metaclass=MetaSingleton):
                                 timeout=10.0,
                             )
                         else:
-                            metrics.POST_REQUEST_CNT.inc()
+                            API_YCLIENTS_POST_REQUEST_CNT.inc()
                             r = await client.post(
                                 self.url(url),
                                 headers=_headers,
@@ -145,11 +152,13 @@ class Yclients(metaclass=MetaSingleton):
                     except Exception as e:
                         # Получить user token
                         if i < 3:
-                            logger.error(f'attempt: "{i}", error: "{e}", url: "{r.url}"')
+                            logger.error(
+                                f'attempt: "{i}", error: "{e}", url: "{r.url}"'
+                            )
                             asyncio.sleep(10)
                             continue
                         try:
-                            metrics.REQUEST_ERROR_CNT.inc()
+                            API_YCLIENTS_REQUEST_ERROR_CNT.inc()
                             logger.error(f'httpx: "{r.url=}"')
                             logger.error(f'httpx: "{r.text=}"')
                         except Exception as xe:
@@ -170,7 +179,7 @@ class Yclients(metaclass=MetaSingleton):
                 # try:
                 #     js = r.json()
                 # except Exception as e:
-                #     metrics.REQUEST_ERROR_CNT.inc()
+                #     REQUEST_ERROR_CNT.inc()
                 #     # Получить user token
                 #     logger.error(f'to_json: "{r.url=}"')
                 #     logger.error(f'to_json: "{r.text=}"')
@@ -209,7 +218,7 @@ class Yclients(metaclass=MetaSingleton):
     async def write_transaction(self, params: dict):
         _headers = await self.auth()
         async with httpx.AsyncClient() as client:
-            metrics.POST_REQUEST_CNT.inc()
+            API_YCLIENTS_POST_REQUEST_CNT.inc()
             r = await client.post(
                 self.url(f"finance_transactions/{self.company_id}"),
                 headers=_headers,
@@ -222,7 +231,7 @@ class Yclients(metaclass=MetaSingleton):
         _headers = await self.auth()
         activity_id = params["activity_id"]
         async with httpx.AsyncClient() as client:
-            metrics.DELETE_REQUEST_CNT.inc()
+            API_YCLIENTS_DELETE_REQUEST_CNT.inc()
             r = await client.delete(
                 self.url(f"activity/{self.company_id}/{activity_id}"),
                 headers=_headers,
@@ -233,7 +242,7 @@ class Yclients(metaclass=MetaSingleton):
     async def write_activity(self, params: dict):
         _headers = await self.auth()
         async with httpx.AsyncClient() as client:
-            metrics.POST_REQUEST_CNT.inc()
+            API_YCLIENTS_POST_REQUEST_CNT.inc()
             r = await client.post(
                 self.url(f"activity/{self.company_id}"),
                 headers=_headers,
@@ -304,7 +313,7 @@ class Yclients(metaclass=MetaSingleton):
             },
         )
         logger.debug(
-            f"get_storage_transactions {start_date}-{end_date}, rows: {len(rows)}"
+            f"get_storage_transactions {start_date}-{end_date}, rows: {len(rows)}"  # noqa
         )
         return rows
 
@@ -439,7 +448,8 @@ class Yclients(metaclass=MetaSingleton):
                     },
                     timeout=10.0,
                 )
-                # {"success": true or false, "meta": {"message": "текст ошибки"}}
+                # {"success": true or false,
+                # "meta": {"message": "текст ошибки"}}
                 return r.json()
             except Exception as e:
                 logger.error(e)
