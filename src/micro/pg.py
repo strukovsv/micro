@@ -168,12 +168,19 @@ async def fetchone(query, params=None):
     return await (await get_db()).fetchone(query, params)
 
 
-async def get_data(table_name, id):
-    for row in await (await get_db()).fetchall(
-        f"select js from {table_name} where id = %(id)s", {"id": id}
-    ):
-        return row["js"]
-    return None
+async def get_data(table_name, id: int = None, where: str = None):
+    if id:
+        for row in await (await get_db()).fetchall(
+            f"select js from {table_name} where id = %(id)s", {"id": id}
+        ):
+            return row["js"]
+    elif where:
+        for row in await (await get_db()).fetchall(
+            f"select js from {table_name} where {where}"
+        ):
+            return row["js"]
+    else:
+        return None
 
 
 async def update(table_name: str, id: int, js: dict, func=None) -> str:
