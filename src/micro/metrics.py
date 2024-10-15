@@ -19,3 +19,17 @@ DO_EVENTS_CNT = Counter("do_events_cnt", "Count event receive from kafka")
 WORKED_EVENTS_CNT = Counter(
     "worked_events_cnt", "Count worked event from kafka this"
 )
+
+PG_EXECUTE_CNT = Counter(
+    "pg_execute_cnt", "Count executes postgres local base"
+)
+
+PG_FETCHALL_CNT = Counter(
+    "pg_fetchall_cnt", "Count fetchalls postgres local base"
+)
+
+PG_UPDATES = Counter(
+    "pg_updates",
+    "Count update/insert/delete records postgres local base",
+    ["method"],
+)

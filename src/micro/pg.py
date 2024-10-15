@@ -8,7 +8,7 @@ import jinja2
 from .utils import get_classic_rows
 
 import config
-import metrics
+from .metrics import PG_EXECUTE_CNT, PG_FETCHALL_CNT, PG_UPDATES
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +51,14 @@ class DB:
     async def execute(self, query, params=None):
         async with self.pool.connection() as conn:
             async with conn.cursor() as acur:
+                PG_EXECUTE_CNT.inc()
                 await acur.execute(query, params)
 
     async def fetchall(self, query, params=None):
         async with self.pool.connection() as conn:
             async with conn.cursor() as acur:
                 await acur.execute(query, params)
+                PG_FETCHALL_CNT.inc()
                 return await acur.fetchall()
 
     async def fetchone(self, query, params=None):
@@ -178,7 +180,7 @@ async def get_data(table_name, id):
 
 async def update(table_name: str, id: int, js: dict, func=None) -> str:
     result = await (await get_db()).update(table_name, id, js, func)
-    logger.info(f"update {table_name}[{id}]: {result}")
+    PG_UPDATES.labels(result).inc()
     return result
 
 

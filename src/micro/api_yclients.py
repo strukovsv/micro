@@ -170,7 +170,7 @@ class Yclients(metaclass=MetaSingleton):
                 # Осталось от одной секунды,
                 # по факту нужно перенести в fastapi loop
                 duration = (datetime.datetime.now() - start).total_seconds()
-                remain = 2.0 - duration
+                remain = 1.0 - duration
                 if remain > 0:
                     # logger.info(f"sleep: {duration=}, {remain=}")
                     logger.debug(f"sleep remain: {remain}")
