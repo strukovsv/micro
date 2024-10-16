@@ -155,7 +155,7 @@ class Yclients(metaclass=MetaSingleton):
                             logger.error(
                                 f'attempt: "{i}", error: "{e}", url: "{r.url}"'
                             )
-                            asyncio.sleep(10)
+                            await asyncio.sleep(10)
                             continue
                         try:
                             API_YCLIENTS_REQUEST_ERROR_CNT.inc()
